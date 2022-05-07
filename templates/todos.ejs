@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>Todos</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link type="text/css" href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+	<h1>Todos</h1>
+	<div>
+		<% for(var i=0; i<itemsTable.length; i++) {%>
+			<div id='todo_<%= itemsTable[i].id %>' class="list" onclick='openTodo(<%=
+						itemsTable[i].id %>)'>
+
+				<h2 style="width: -webkit-fill-available;">
+					<%= itemsTable[i].tasks.filter(val=> val.completed).length %> / <%- itemsTable[i].tasks.length %>
+							&nbsp;&nbsp;&nbsp; <%- itemsTable[i].name %>
+				</h2>
+
+				<button onclick="deleteList(event, <%= itemsTable[i].id %>)">
+					<i class="material-icons" style="color: red">delete</i></button>
+				<br><br>
+			</div>
+			<% } %>
+	</div>
+	<br>
+	<h2>Add Todo</h2>
+	<br>
+	<form id="form">
+		<fieldset>
+			<legend>
+				<strong>Todo List Information</strong>
+			</legend>
+
+			<label>Name: <input type="text" name="name" id="name" /></label>
+
+			<button type="submit"><i class="material-icons" style="color: green">add</i></button>
+		</fieldset>
+
+	</form>
+
+
+</body>
+
+
+<script>
+	var deleteList = function (event, id) {
+		event.stopPropagation()
+		const requestOptions = {
+			method: 'DELETE',
+			mode: 'cors',
+			headers: { "Content-Type": "application/json" }
+		};
+		fetch(`/todos/${id}`, requestOptions)
+		document.getElementById(`todo_${id}`).parentNode.removeChild(document.getElementById(`todo_${id}`))
+	}
+	var openTodo = function (id) {
+		window.location = `/tasks/${id}`
+	}
+
+	var itemsTable = <%- JSON.stringify(itemsTable) %>
+		itemsTable.forEach(val => {
+			if (val.tasks.length != 0 && val.tasks.filter(val => val.completed).length == val.tasks.length) {
+				document.getElementById(`todo_${val.id}`).setAttribute('style', 'text-decoration: line-through;')
+			}
+		})
+
+	document.getElementById('form').onsubmit = function (e) {
+		e.preventDefault();
+		if (itemsTable.filter((val) => val.name.toLowerCase().trim() == document.getElementById('name').value.toLowerCase().trim()).length > 0) {
+			window.alert('Names must be unique')
+			return false;
+		}
+		else {
+			const requestOptions = {
+				method: 'post',
+				mode: 'cors',
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(
+					{
+						name: document.getElementById('name').value
+					})
+			};
+			fetch(`/todos`, requestOptions).then(() => {
+				window.location.reload();
+			})
+		}
+	}
+
+
+
+</script>
+
+</html>

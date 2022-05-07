@@ -1,0 +1,71 @@
+.list, .edit {
+    display: flex;
+    align-items: center;
+    background-color: rgb(194, 193, 193);
+    border: 2px solid black;
+    margin: 5px;
+    border-radius: 10px;
+    padding: 10px;
+
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+.edit {
+    padding: 10px;
+    flex-wrap: wrap;
+}
+input, select {
+    border-radius: 5px;
+    margin: 5px;
+    border: 1px black solid;
+    padding: 5px;
+}
+button {
+    background: #6969694a;
+    border: none;
+    border-radius: 30px;
+    margin: 0 5px 5px 5px;
+}
+button:hover {
+    background: #0000003b;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+input[type="checkbox"] {
+    accent-color: green;  
+    height: 20px;
+    width: 40px;
+}
+.taskinfo {
+    width: -webkit-fill-available;
+    margin: 17px;
+}
+i {
+    background-color: transparent;
+    margin: 5px;
+}
+h2 {
+    margin: 0px;
+    text-transform: capitalize;
+}
+h3 {
+    margin: 1px;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    font-style: italic;
+}
+fieldset {
+    display: flex; 
+    align-items: center;
+    border-radius: 10px;
+    border: 2px solid black;
+    flex-wrap: wrap;
+}
+body {
+    background-color: antiquewhite;
+}
+input:focus, textarea:focus, select:focus{
+    outline: none;
+}
+button:disabled {
+    pointer-events: none;
+    opacity: 0.3;
+}

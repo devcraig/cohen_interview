@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8" />
+	<title>
+		<%= itemsTable.name %>
+	</title>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link type="text/css" href="/css/style.css" rel="stylesheet">
+</head>
+
+<body>
+	<button onclick="openTodo()"><i class="material-icons">arrow_back</i> </button>
+	<h1>Tasks for <%= itemsTable.name %>
+	</h1>
+	<div>
+		<% for(var i=0; i<itemsTable.tasks.length; i++) {%>
+			<div class="list" id='task_<%= itemsTable.tasks[i].id %>'>
+				<input type="checkbox" id='completed_<%= itemsTable.tasks[i].id %>'
+					onchange="addCheck(<%= itemsTable.tasks[i].id %>)" name="completed">
+				<div class="taskinfo">
+					<h2>
+						<%- itemsTable.tasks[i].name %>
+					</h2>
+					<h3>
+						<%- itemsTable.tasks[i].priority %> <br> Due By: <%- itemsTable.tasks[i].completeBy %>
+					</h3>
+				</div>
+
+
+				<div style="display: flex; flex-direction: column; margin-right: 2vw;">
+					<button id='edit_<%= itemsTable.tasks[i].id %>' onclick="editTask('<%- itemsTable.tasks[i].id %>')">
+						<i class="material-icons" style="color: green;">edit</i> </button>
+					<button id='delete_<%= itemsTable.tasks[i].id %>'
+						onclick="deleteTask('<%- itemsTable.tasks[i].id %>')"><i class="material-icons"
+							style="color: red;">delete</i></button>
+				</div>
+				<br><br>
+			</div>
+			<div class="edit" id='edit_div_<%= itemsTable.tasks[i].id %>' style="display:none;">
+				<input type="text" name="name" id="name_<%= itemsTable.tasks[i].id %>"
+					value='<%= itemsTable.tasks[i].name %>' class="required_<%- itemsTable.tasks[i].id %>"
+					onkeyup="enableSubmit('<%- itemsTable.tasks[i].id %>')" />
+
+				<select name="priority" id="priority_<%= itemsTable.tasks[i].id %>">
+					<option value="High Priority">High Priority</option>
+					<option value="Medium Priority">Medium Priority</option>
+					<option value="Low Priority">Low Priority</option>
+				</select>
+
+				<input type="date" id="timestamp_<%= itemsTable.tasks[i].id %>" name="timestamp"
+					class="required_<%- itemsTable.tasks[i].id %>" value='<%= itemsTable.tasks[i].completeBy %>'
+					min="2022-05-01" onkeyup="enableSubmit('<%- itemsTable.tasks[i].id %>')">
+
+				<button id='submit-button_<%= itemsTable.tasks[i].id %>'
+					onclick="saveEdit('<%- itemsTable.tasks[i].id %>')"><i class="material-icons"
+						style="color: green;">save</i></button>
+				<button id='cancel_button_<%= itemsTable.tasks[i].id %>'
+					onclick="cancelEdit('<%- itemsTable.tasks[i].id %>')"><i class="material-icons"
+						style="color: red;">close</i></button>
+
+				<br><br>
+			</div>
+
+			<% } %>
+	</div>
+	<br>
+	<h2>Add A Task</h2>
+	<br>
+	<form id="form">
+		<fieldset>
+			<legend>
+				<strong>Task Information</strong>
+			</legend>
+
+			<label>Name: <input type="text" name="name" id="name" class="required_"
+					onkeyup="enableSubmit('')" /></label>
+
+			<label for="timestamp">Due Date:</label>
+			<input type="date" id="timestamp" name="timestamp" class="required_" value="2022-05-05" min="2022-05-01"
+				onkeyup="enableSubmit('')">
+
+			<label for="priority">Priority:</label>
+			<select name="priority" id="priority">
+				<option value="High Priority">High Priority</option>
+				<option value="Medium Priority">Medium Priority</option>
+				<option value="Low Priority">Low Priority</option>
+			</select>
+
+			<button type="submit" id="submit-button_" disabled><i class="material-icons"
+					style="color: green">add</i></button>
+
+		</fieldset>
+	</form>
+</body>
+
+
+<script>
+	var today = new Date();
+	var dd = today.getDate();
+	var mm = today.getMonth() + 1;
+	var yyyy = today.getFullYear();
+	if (dd < 10) {
+		dd = '0' + dd
+	}
+	if (mm < 10) {
+		mm = '0' + mm
+	}
+	today = yyyy + '-' + mm + '-' + dd;
+	document.getElementById("timestamp").setAttribute("min", today);
+	document.getElementById("timestamp").setAttribute("value", today);
+
+	var tasks = <%- JSON.stringify(itemsTable.tasks) %>
+
+		tasks.forEach(val => {
+			if (val.completed) {
+				document.getElementById(`completed_${val.id}`).setAttribute('checked', true)
+				document.getElementById(`edit_${val.id}`).setAttribute('style', 'display: none')
+				document.getElementById(`task_${val.id}`).setAttribute('style', 'text-decoration: line-through;')
+			}
+			document.getElementById(`priority_${val.id}`).value = val.priority
+			document.getElementById(`timestamp_${val.id}`).setAttribute("min", today);
+			document.getElementById(`timestamp_${val.id}`).setAttribute("value", today);
+
+		})
+
+	var enableSubmit = function (id) {
+		let inputs = document.getElementsByClassName(`required_${id}`);
+		let isValid = true;
+		for (var i = 0; i < inputs.length; i++) {
+			let changedInput = inputs[i];
+			if (changedInput.value.trim() === "" || changedInput.value === null) {
+				isValid = false;
+				break;
+			}
+		}
+		document.getElementById(`submit-button_${id}`).disabled = !isValid;
+	}
+
+	document.getElementById('form').onsubmit = function (e) {
+		e.preventDefault();
+		if (tasks.filter(val => val.name.toLowerCase().trim() == document.getElementById('name').value.toLowerCase().trim()).length > 0) {
+			window.alert('Names must be unique')
+			return false
+		} else {
+			var url = window.location.pathname;
+			var id = url.substring(url.lastIndexOf('/') + 1);
+			const requestOptions = {
+				method: 'post',
+				mode: 'cors',
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(
+					{
+						name: document.getElementById('name').value,
+						timestamp: document.getElementById('timestamp').value,
+						priority: document.getElementById('priority').value
+					})
+			};
+			fetch(`/tasks/${id}`, requestOptions).then(() => {
+				window.location.reload();
+			})
+		}
+	}
+	var openTodo = function () {
+		window.location = `/todos`
+	}
+	var addCheck = function (id) {
+		var url = window.location.pathname;
+		var todo_id = url.substring(url.lastIndexOf('/') + 1);
+
+		const requestOptions = {
+			method: 'PATCH',
+			mode: 'cors',
+			headers: { "Content-Type": "application/json; charset=UTF-8" },
+			body: JSON.stringify(
+				{
+					edit: false
+				})
+		};
+		fetch(`/tasks/${todo_id}/${id}`, requestOptions)
+		var checked = document.getElementById(`completed_${id}`).checked
+		if (checked == false || checked == '') {
+			document.getElementById(`task_${id}`).setAttribute('style', '')
+			document.getElementById(`edit_${id}`).setAttribute('style', '')
+		}
+		else {
+			document.getElementById(`task_${id}`).setAttribute('style', 'text-decoration: line-through;')
+			document.getElementById(`edit_${id}`).setAttribute('style', 'display:none')
+
+		}
+	}
+	var editTask = function (task_id) {
+		this.tasks.forEach(val => {
+			if (val.id == task_id) {
+				document.getElementById(`edit_div_${task_id}`).setAttribute('style', '');
+				document.getElementById(`task_${task_id}`).setAttribute('style', 'display:none');
+			}
+		})
+	}
+	var cancelEdit = function (task_id) {
+		this.tasks.forEach(val => {
+			if (val.id == task_id) {
+				document.getElementById(`edit_div_${task_id}`).setAttribute('style', 'display:none');
+				document.getElementById(`task_${task_id}`).setAttribute('style', '');
+			}
+		})
+	}
+	var saveEdit = function (task_id) {
+
+		if (tasks.filter(val => val.name.toLowerCase().trim() == document.getElementById(`name_${task_id}`).value.toLowerCase().trim() && val.id != task_id).length > 0) {
+			window.alert('Names must be unique')
+		} else {
+			var url = window.location.pathname;
+			var todo_id = url.substring(url.lastIndexOf('/') + 1);
+
+			const requestOptions = {
+				method: 'PATCH',
+				mode: 'cors',
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(
+					{
+						name: document.getElementById(`name_${task_id}`).value,
+						priority: document.getElementById(`priority_${task_id}`).value,
+						timestamp: document.getElementById(`timestamp_${task_id}`).value,
+						edit: true
+					})
+			};
+			fetch(`/tasks/${todo_id}/${task_id}`, requestOptions).then(() => {
+				window.location.reload();
+			})
+		}
+	}
+	var deleteTask = function (task_id) {
+		var url = window.location.pathname;
+		var todo_id = url.substring(url.lastIndexOf('/') + 1);
+		const requestOptions = {
+			method: 'DELETE',
+			mode: 'cors',
+			headers: { "Content-Type": "application/json" }
+		};
+		fetch(`/tasks/${todo_id}/${task_id}`, requestOptions)
+		document.getElementById(`task_${task_id}`).parentNode.removeChild(document.getElementById(`task_${task_id}`))
+		document.getElementById(`edit_div_${task_id}`).parentNode.removeChild(document.getElementById(`edit_div_${task_id}`))
+
+	}
+</script>
+
+</html>

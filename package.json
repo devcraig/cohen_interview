@@ -4,8 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "cors": "^2.8.5",
+    "ejs": "^3.1.7",
     "express": "^4.17.1",
-    "lodash": "^4.17.15"
+    "fs": "^0.0.1-security",
+    "lodash": "^4.17.15",
+    "vue": "^3.2.33"
   },
   "scripts": {
     "start": "node index.js"
